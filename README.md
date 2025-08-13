@@ -72,7 +72,7 @@ JWT_ACCESS_TOKEN_EXPIRES=1h    # Token validity period
 JWT_SECRET=your_secret_key     # Strong secret for token signing
 ```
 
-## 🎯 Our Goal
+## 🎯 Goal
 
 Build a robust, scalable, and customizable orderbook solution that serves as:
 
