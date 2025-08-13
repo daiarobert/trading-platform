@@ -16,6 +16,9 @@ from helpers import (
     match_orders,
 )
 
+# Import WebSocket manager for broadcasting updates
+from websocket_manager import ws_manager
+
 order_bp = Blueprint('orders', __name__)
 
 
@@ -153,6 +156,13 @@ def create_order():
 
             cursor.close()
 
+            # Broadcast orderbook update via WebSocket
+            try:
+                ws_manager.broadcast_orderbook_change()
+                logging.info("Broadcasted orderbook update after order creation")
+            except Exception as ws_error:
+                logging.error(f"WebSocket broadcast error: {ws_error}")
+
             return (
                 jsonify(
                     {
@@ -265,6 +275,12 @@ def delete_order(order_id):
             )
             db.commit()
             cursor.close()
+
+            # Broadcast orderbook update via WebSocket
+            try:
+                ws_manager.broadcast_orderbook_change()
+            except Exception as ws_error:
+                logging.error(f"WebSocket broadcast error: {ws_error}")
 
             return (
                 jsonify(

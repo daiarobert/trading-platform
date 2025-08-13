@@ -5,6 +5,7 @@ import os
 import logging
 from datetime import timedelta
 from routes import register_routes
+from websocket_manager import ws_manager
 
 from dotenv import load_dotenv
 
@@ -39,7 +40,7 @@ CORS resolves this by allowing the frontend to access the backend API.
 
 CORS(
     app,
-    origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8000"],
+    origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://localhost:8000", "*"],
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
 )
@@ -48,6 +49,9 @@ logging.basicConfig(level=logging.INFO)
 
 # Register all modular route blueprints
 register_routes(app)
+
+# Initialize WebSocket manager
+ws_manager.init_app(app)
 
 
 # JWT error handlers
@@ -72,4 +76,5 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    print("Starting Flask app with WebSocket support...")
+    ws_manager.socketio.run(app, host='0.0.0.0', port=5000, debug=False)

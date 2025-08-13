@@ -2,6 +2,7 @@ const OrderBookHeader = ({
   onRefresh,
   loading,
   isConnected,
+  wsConnected,
   selectedSymbol,
   onSymbolChange,
   availableSymbols,
@@ -10,6 +11,18 @@ const OrderBookHeader = ({
     <div className="flex justify-between items-center mb-5 pb-4 border-b-2 border-gray-100">
       <div className="flex items-center gap-4">
         <h2 className="text-2xl font-semibold text-gray-800">Order Book</h2>
+
+        {/* Connection Status */}
+        <div className="flex items-center gap-2">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              wsConnected ? "bg-green-500" : "bg-yellow-500"
+            }`}
+          ></div>
+          <span className="text-xs text-gray-600">
+            {wsConnected ? "Live" : "Polling"}
+          </span>
+        </div>
 
         {/* Symbol Selector */}
         <div className="flex items-center gap-2">

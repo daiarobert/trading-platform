@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchOrderBook } from "../services/api";
+import { useWebSocket } from "./useWebSocket";
+import { getCurrentUser } from "../services/authService";
 import {
   groupOrdersByPrice,
   separateOrdersBySide,
@@ -11,7 +13,10 @@ export const useOrderBook = (selectedSymbol = "BTCUSD") => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Simple data fetching - API handles all the complexity
+  // Use WebSocket for real-time data
+  const { connected: wsConnected, orderbook: wsOrderbook } = useWebSocket();
+
+  // Fallback API fetching when WebSocket is not connected
   const loadOrders = useCallback(async () => {
     try {
       setError("");
@@ -24,11 +29,34 @@ export const useOrderBook = (selectedSymbol = "BTCUSD") => {
     }
   }, []);
 
-  // Auto-refresh
+  // Use WebSocket data when available, fallback to API polling
+  useEffect(() => {
+    if (wsConnected && wsOrderbook && Array.isArray(wsOrderbook)) {
+      console.log("📡 Using WebSocket data");
+
+      // Add is_own_order flag to WebSocket data
+      const currentUser = getCurrentUser();
+      const currentUserId = currentUser?.id;
+
+      const ordersWithOwnership = wsOrderbook.map((order) => ({
+        ...order,
+        is_own_order: currentUserId && order.user_id === currentUserId,
+      }));
+
+      setOrders(ordersWithOwnership);
+      setError("");
+      setLoading(false);
+    } else if (!wsConnected) {
+      console.log("🔄 Using API fallback - WebSocket not connected");
+      loadOrders();
+      const interval = setInterval(loadOrders, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [wsConnected, wsOrderbook, loadOrders]);
+
+  // Initial load regardless of WebSocket status
   useEffect(() => {
     loadOrders();
-    const interval = setInterval(loadOrders, 5000);
-    return () => clearInterval(interval);
   }, [loadOrders]);
 
   // Get available symbols
@@ -78,11 +106,12 @@ export const useOrderBook = (selectedSymbol = "BTCUSD") => {
     ...processedData,
 
     // Actions
-    refetch,
+    refetch: loadOrders,
 
     // Status helpers
-    isConnected: !error,
+    isConnected: wsConnected || !error,
     hasData: processedData.stats.totalOrders > 0,
+    wsConnected,
 
     // Available symbols for dropdown
     availableSymbols,

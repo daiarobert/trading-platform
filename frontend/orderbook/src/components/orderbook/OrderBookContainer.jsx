@@ -18,6 +18,7 @@ const OrderBookContainer = () => {
     stats,
     refetch,
     isConnected,
+    wsConnected,
     hasData,
     availableSymbols,
   } = useOrderBook(selectedSymbol);
@@ -50,6 +51,7 @@ const OrderBookContainer = () => {
         onRefresh={refetch}
         loading={loading}
         isConnected={isConnected}
+        wsConnected={wsConnected}
         error={error}
         selectedSymbol={selectedSymbol}
         onSymbolChange={setSelectedSymbol}
@@ -92,8 +94,8 @@ const OrderBookContainer = () => {
       {/* Footer Info */}
       {hasData && (
         <div className="mt-5 pt-4 border-t border-gray-200 text-center text-sm text-gray-600">
-          Auto-refreshes every 5 seconds • Last updated:{" "}
-          {new Date().toLocaleTimeString()}
+          Using Websockets for real time trading{" "}
+          {/* {new Date().toLocaleTimeString()} */}
         </div>
       )}
     </div>
